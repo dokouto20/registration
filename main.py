@@ -1,6 +1,8 @@
 import sqlite3
 from tkinter import *
 import re
+from textwrap import wrap
+from datetime import date
 
 #c.execute("CREATE TABLE people (name text,lastname text, email text, phone_number text, perosnal_number text)") /create
 #c.execute("INSERT INTO people VALUES ('tomas','dokoupil','idk@sad.com','888999777','041125/5338')") /insert
@@ -81,12 +83,30 @@ def check_phone(valphone):
 
 def check_persid(valpersid):
     #split and chcek brirth date
-    if valpersid:
-        personal_id_entry.delete(0, END)
-        personal_id_entry.insert(0, "SUCCES")
-    else:
+    splited = valpersid.split("/")
+    sp1val = splited[0]
+    n = 2
+    sp1 = [sp1val[i:i + n] for i in range(0, len(sp1val), n)]
+    year = "20"+sp1[0]
+    month = sp1[1]
+    day = sp1[2]
+    current_year = date.today().year
+
+    if int(year) > current_year:
         personal_id_entry.delete(0, END)
         personal_id_entry.insert(0, "ERROR")
+    else:
+        if int(month) > 12:
+            personal_id_entry.delete(0, END)
+            personal_id_entry.insert(0, "ERROR")
+        else:
+            if int(day) > 31:
+                personal_id_entry.delete(0, END)
+                personal_id_entry.insert(0, "ERROR")
+            else:
+                personal_id_entry.delete(0, END)
+                personal_id_entry.insert(0, "SUCCES")
+
 
 
 def getvals():
