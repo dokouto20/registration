@@ -15,54 +15,57 @@ from datetime import date
 #connection.commit()
 #connection.close()
 
-
-
-def check_name(valname):
-    status = 0
-    for char in valname:
-        val = char.isdigit()
-        if val == True:
-            status = 1
+def check_name(valname,err):
+    if valname != "OK" or valname != "ERROR":
+        if valname:
+            status = 0
+            for char in valname:
+                val = char.isdigit()
+                if val == True:
+                    status = 1
+                else:
+                    pass
+            if status == 0:
+                err[0] = 1
+            else:
+                err[0] = 0
         else:
-            pass
-    if status == 0:
-        name_entry.delete(0, END)
-        name_entry.insert(0, "SUCCES")
+            err[0] = 0
     else:
-        name_entry.delete(0, END)
-        name_entry.insert(0, "ERROR")
+        err[0] = 0
 
-def check_lasname(vallastname):
-    status = 0
+def check_lasname(vallastname,err):
+    if vallastname != "OK" or vallastname != "ERROR":
+        if vallastname:
+            status = 0
 
-    for char in vallastname:
-        val = char.isdigit()
-        if val == True:
-            status = 1
+            for char in vallastname:
+                val = char.isdigit()
+                if val == True:
+                    status = 1
+                else:
+                    pass
+
+            if status == 0:
+                err[1] = 1
+            else:
+                err[1] = 0
         else:
-            pass
-
-    if status == 0:
-        lastname_entry.delete(0, END)
-        lastname_entry.insert(0, "SUCCES")
+            err[1] = 0
     else:
-        lastname_entry.delete(0, END)
-        lastname_entry.insert(0, "ERROR")
+        err[1] = 0
 
-def check_email(valemail):
+def check_email(valemail,err):
     pattern = '^[a-z 0-9]+[\._]?[a-z 0-9]+[@]\w+[.]\w{2,3}$'
 
     if re.search(pattern, valemail):
-        email_entry.delete(0, END)
-        email_entry.insert(0, "SUCCES")
+        err[2] = 1
     else:
-        email_entry.delete(0, END)
-        email_entry.insert(0, "ERROR")
+        err[2] = 0
 
-def check_phone(valphone):
+def check_phone(valphone,err):
     status = 0
     lenght = len(valphone)
-    print(lenght)
     if lenght == 9:
         for char in valphone:
             val = char.isdigit()
@@ -72,54 +75,93 @@ def check_phone(valphone):
                 status = 1
 
         if status == 0:
-            phone_number_entry.delete(0, END)
-            phone_number_entry.insert(0, "SUCCES")
+            err[3] = 1
         else:
-            phone_number_entry.delete(0, END)
-            phone_number_entry.insert(0, "ERROR")
+            err[3] = 0
     else:
-        phone_number_entry.delete(0, END)
-        phone_number_entry.insert(0, "ERROR")
+        err[3] = 0
 
-def check_persid(valpersid):
+def check_persid(valpersid,err):
     #split and chcek brirth date
-    splited = valpersid.split("/")
-    sp1val = splited[0]
-    n = 2
-    sp1 = [sp1val[i:i + n] for i in range(0, len(sp1val), n)]
-    year = "20"+sp1[0]
-    month = sp1[1]
-    day = sp1[2]
-    current_year = date.today().year
-
-    if int(year) > current_year:
-        personal_id_entry.delete(0, END)
-        personal_id_entry.insert(0, "ERROR")
-    else:
-        if int(month) > 12:
-            personal_id_entry.delete(0, END)
-            personal_id_entry.insert(0, "ERROR")
-        else:
-            if int(day) > 31:
-                personal_id_entry.delete(0, END)
-                personal_id_entry.insert(0, "ERROR")
+    if valpersid != "OK" or valpersid != "ERROR":
+        if valpersid:
+            splited = valpersid.split("/")
+            sp1val = splited[0]
+            n = 2
+            sp1 = [sp1val[i:i + n] for i in range(0, len(sp1val), n)]
+            year = "20"
+            month = None
+            day = None
+            if sp1[0] != "ER":
+                year = year+sp1[0]
+            if sp1[1] != "RO":
+                month = sp1[1]
+                if int(month) > 12:
+                    month - 50
+            if sp1[2] != "R":
+                day = sp1[2]
+            current_year = date.today().year
+            if year and month and day:
+                if int(year) > current_year:
+                    err[4] = 0
+                else:
+                    if int(month) > 12:
+                        err[4] = 0
+                    else:
+                        if int(day) > 31:
+                            err[4] = 0
+                        else:
+                            err[4] = 1
             else:
-                personal_id_entry.delete(0, END)
-                personal_id_entry.insert(0, "SUCCES")
-
-
+                err[4] = 0
+        else:
+            err[4] = 0
+    else:
+        err[4] = 0
 
 def getvals():
+    err = [0,0,0,0,0]
     valname = name_entry.get()
-    check_name(valname)
+    check_name(valname,err)
     vallastname = lastname_entry.get()
-    check_lasname(vallastname)
+    check_lasname(vallastname,err)
     valemail = email_entry.get()
-    check_email(valemail)
+    check_email(valemail,err)
     valphone = phone_number_entry.get()
-    check_phone(valphone)
+    check_phone(valphone,err)
     valpersid = personal_id_entry.get()
-    check_persid(valpersid)
+    check_persid(valpersid,err)
+
+    num = 0
+    status = 0
+    for i in err:
+        print(i)
+        num += 1
+        if i == 0:
+            if num == 1:
+                name_entry.delete(0, END)
+                name_entry.insert(0, "ERROR")
+            elif num == 2:
+                lastname_entry.delete(0, END)
+                lastname_entry.insert(0, "ERROR")
+            elif num == 3:
+                email_entry.delete(0, END)
+                email_entry.insert(0, "ERROR")
+            elif num == 4:
+                phone_number_entry.delete(0, END)
+                phone_number_entry.insert(0, "ERROR")
+            elif num == 5:
+                personal_id_entry.delete(0, END)
+                personal_id_entry.insert(0, "ERROR")
+        else:
+            status += 1
+
+    if status == 5:
+        print("insert")
+
+
+
+
 
 
 
