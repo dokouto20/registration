@@ -1,5 +1,6 @@
 import sqlite3
 from tkinter import *
+import re
 
 #c.execute("CREATE TABLE people (name text,lastname text, email text, phone_number text, perosnal_number text)") /create
 #c.execute("INSERT INTO people VALUES ('tomas','dokoupil','idk@sad.com','888999777','041125/5338')") /insert
@@ -12,12 +13,98 @@ from tkinter import *
 #connection.commit()
 #connection.close()
 
+
+
+def check_name(valname):
+    status = 0
+    for char in valname:
+        val = char.isdigit()
+        if val == True:
+            status = 1
+        else:
+            pass
+    if status == 0:
+        name_entry.delete(0, END)
+        name_entry.insert(0, "SUCCES")
+    else:
+        name_entry.delete(0, END)
+        name_entry.insert(0, "ERROR")
+
+def check_lasname(vallastname):
+    status = 0
+
+    for char in vallastname:
+        val = char.isdigit()
+        if val == True:
+            status = 1
+        else:
+            pass
+
+    if status == 0:
+        lastname_entry.delete(0, END)
+        lastname_entry.insert(0, "SUCCES")
+    else:
+        lastname_entry.delete(0, END)
+        lastname_entry.insert(0, "ERROR")
+
+def check_email(valemail):
+    pattern = '^[a-z 0-9]+[\._]?[a-z 0-9]+[@]\w+[.]\w{2,3}$'
+
+    if re.search(pattern, valemail):
+        email_entry.delete(0, END)
+        email_entry.insert(0, "SUCCES")
+    else:
+        email_entry.delete(0, END)
+        email_entry.insert(0, "ERROR")
+
+def check_phone(valphone):
+    status = 0
+    lenght = len(valphone)
+    print(lenght)
+    if lenght == 9:
+        for char in valphone:
+            val = char.isdigit()
+            if val == True:
+                pass
+            else:
+                status = 1
+
+        if status == 0:
+            phone_number_entry.delete(0, END)
+            phone_number_entry.insert(0, "SUCCES")
+        else:
+            phone_number_entry.delete(0, END)
+            phone_number_entry.insert(0, "ERROR")
+    else:
+        phone_number_entry.delete(0, END)
+        phone_number_entry.insert(0, "ERROR")
+
+def check_persid(valpersid):
+    #split and chcek brirth date
+    if valpersid:
+        personal_id_entry.delete(0, END)
+        personal_id_entry.insert(0, "SUCCES")
+    else:
+        personal_id_entry.delete(0, END)
+        personal_id_entry.insert(0, "ERROR")
+
+
 def getvals():
-    print('jdeto')
+    valname = name_entry.get()
+    check_name(valname)
+    vallastname = lastname_entry.get()
+    check_lasname(vallastname)
+    valemail = email_entry.get()
+    check_email(valemail)
+    valphone = phone_number_entry.get()
+    check_phone(valphone)
+    valpersid = personal_id_entry.get()
+    check_persid(valpersid)
+
 
 
 tk = Tk()
-tk.geometry("270x200")
+tk.geometry("295x200")
 tk.resizable(False, False)
 
 Label(tk, text='registration', font='ar 15 bold').grid(row=0, column=3)
@@ -53,6 +140,7 @@ phone_number_entry.grid(row=4, column=3)
 personal_id_entry.grid(row=5, column=3)
 
 Button(text="submit", command=getvals).grid(row=7, column=3)
+
 
 tk.mainloop()
 
