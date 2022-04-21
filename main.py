@@ -1,11 +1,23 @@
 import sqlite3
 from tkinter import *
+from tkinter import ttk
 import re
 from textwrap import wrap
 from datetime import date
 
-#c.execute("CREATE TABLE people (name text,lastname text, email text, phone_number text, perosnal_number text)") /create
-#c.execute("INSERT INTO people VALUES ('tomas','dokoupil','idk@sad.com','888999777','041125/5338')") /insert
+
+#c.executescript("""
+#REATE TABLE people(
+#    id INTEGER PRIMARY KEY,
+#    name VARCHAR(500),
+#    lastname VARCHAR(500),
+#    email VARCHAR(500),
+#    phone_number VARCHAR(500),
+#    personal_number VARCHAR(500)
+#
+#);
+#""")
+#c.execute("INSERT INTO people (name, lastname, email, phone_number, personal_number) VALUES ('tomas','dokoupil','idk@sad.com','888999777','041125/5338')")
 #c.execute("SELECT * FROM people") / select
 #print(c.fetchall())
 
@@ -84,36 +96,39 @@ def check_phone(valphone,err):
 def check_persid(valpersid,err):
     #split and chcek brirth date
     if valpersid != "OK" or valpersid != "ERROR":
-        if valpersid:
-            splited = valpersid.split("/")
-            sp1val = splited[0]
-            n = 2
-            sp1 = [sp1val[i:i + n] for i in range(0, len(sp1val), n)]
-            year = "20"
-            month = None
-            day = None
-            if sp1[0] != "ER":
-                year = year+sp1[0]
-            if sp1[1] != "RO":
+        lenght = len(valpersid)
+        if valpersid and lenght == 11:
+            p = 0
+            for i in valpersid:
+                if i.isdigit():
+                    p = 0
+                else:
+                    p = 1
+            if p == 0:
+                splited = valpersid.split("/")
+                sp1val = splited[0]
+                n = 2
+                sp1 = [sp1val[i:i + n] for i in range(0, len(sp1val), n)]
+                print(sp1)
+                year = "20"+sp1[0]
                 month = sp1[1]
                 if int(month) > 12:
-                    month - 50
-            if sp1[2] != "R":
+                    month = int(month) - 50
                 day = sp1[2]
-            current_year = date.today().year
-            if year and month and day:
-                if int(year) > current_year:
-                    err[4] = 0
-                else:
-                    if int(month) > 12:
+                current_year = date.today().year
+                if year and month and day:
+                    if int(year) > current_year:
                         err[4] = 0
                     else:
-                        if int(day) > 31:
+                        if int(month) > 12:
                             err[4] = 0
                         else:
-                            err[4] = 1
-            else:
-                err[4] = 0
+                            if int(day) > 31:
+                                err[4] = 0
+                            else:
+                                err[4] = 1
+                else:
+                    err[4] = 0
         else:
             err[4] = 0
     else:
@@ -157,7 +172,35 @@ def getvals():
             status += 1
 
     if status == 5:
-        print("insert")
+        connection = sqlite3.connect('database.db')
+        c = connection.cursor()
+        c.execute("INSERT INTO people (name, lastname, email, phone_number, perosnal_number ) VALUES (?,?,?,?,?)", (valname,vallastname,valemail,valphone,valpersid,))
+        name_entry.delete(0, END)
+        lastname_entry.delete(0, END)
+        email_entry.delete(0, END)
+        phone_number_entry.delete(0, END)
+        personal_id_entry.delete(0, END)
+        connection.commit()
+        connection.close()
+
+def popup(tk):
+   top = Toplevel(tk)
+   top.geometry("750x250")
+   top.title("prehled")
+   connection = sqlite3.connect('database.db')
+   c = connection.cursor()
+   c.execute("SELECT * FROM people")
+   result = c.fetchall()
+
+   for i in range(len(result)):
+       print(result[i][1])
+       frame= Frame(tk)
+        #create main frame with frames by num of registrations
+       frame.pack()
+
+   connection.commit()
+   connection.close()
+   top.mainloop()
 
 
 
@@ -166,7 +209,7 @@ def getvals():
 
 
 tk = Tk()
-tk.geometry("295x200")
+tk.geometry("295x220")
 tk.resizable(False, False)
 
 Label(tk, text='registration', font='ar 15 bold').grid(row=0, column=3)
@@ -202,7 +245,7 @@ phone_number_entry.grid(row=4, column=3)
 personal_id_entry.grid(row=5, column=3)
 
 Button(text="submit", command=getvals).grid(row=7, column=3)
-
+Button(text="idk", command= lambda: popup(tk)).grid(row=8, column=3)
 
 tk.mainloop()
 
