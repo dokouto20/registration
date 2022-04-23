@@ -7,6 +7,8 @@ from textwrap import wrap
 from datetime import date
 from tkinter.messagebox import YESNOCANCEL
 from turtle import delay, width
+from functools import partial
+import os
 
 
 #c.executescript("""
@@ -20,15 +22,7 @@ from turtle import delay, width
 #
 #);
 #""")
-#c.execute("INSERT INTO people (name, lastname, email, phone_number, personal_number) VALUES ('tomas','dokoupil','idk@sad.com','888999777','041125/5338')")
-#c.execute("SELECT * FROM people") / select
-#print(c.fetchall())
 
-
-#connection = sqlite3.connect('database.db')
-#c = connection.cursor()
-#connection.commit()
-#connection.close()
 
 # check if in name doesnt have num or spec char 
 def check_name(valname,err):
@@ -50,7 +44,6 @@ def check_name(valname,err):
             err[0] = 0
     else:
         err[0] = 0
-
 
 # check if in lastname doesnt have num or spec char 
 def check_lasname(vallastname,err):
@@ -150,7 +143,8 @@ def check_persid(valpersid,err):
     else:
         err[4] = 0
 
-def getvals(tk):
+#get vals form entry and check it 
+def getvals(tk, name_entry, lastname_entry, email_entry, phone_number_entry, personal_id_entry):
     # err list 
     err = [0,0,0,0,0]
     # val check 
@@ -212,17 +206,12 @@ def getvals(tk):
 #redirect to prehled 
 def alertfnc(alert, tk):
     alert.after(3000,lambda:alert.destroy())
-    popup(tk)
+    overview(tk)
 
+# print frame
+def print_frame(top):
 
-#prehled 
-def popup(tk):
-    top = Tk()
-    top.geometry("600x600")
-    top.title("prehled")
-    top.resizable(False, False)
-    
-
+    global mainframe
     mainframe = Frame(top)
     mainframe.pack(fill=BOTH, expand=1)
 
@@ -249,11 +238,19 @@ def popup(tk):
     ediY = 20
 
     for i in lenght:
-        """box = Frame(secondframe, width= 500, height=100, highlightbackground='black', highlightthickness=3).grid(row=j,column=0,padx=20,pady=20)
-        Label(box, text=result[i][1], fg='red', font=(10)).grid(row=j,column=0,padx=10,pady=10)"""
-        T = Text(secondframe, width=70, height=5,).grid(row=j,column=0,padx=10,pady=10)
-        edit = Button(secondframe, text="  edit  ").place(x=520,y=ediY)
-        delete = Button(secondframe, text="delete").place(x=520,y=delY)
+
+        Textarea = Text(secondframe, width=70, height=5,)
+        Textarea.grid(row=j,column=0,padx=10,pady=10)
+        Textarea.insert(END, "\n" +"name: "+result[i][1]+" lastname: "+result[i][2])
+        Textarea.insert(END, "\n" +"email: "+result[i][3]+" phone num: "+result[i][4])
+        Textarea.insert(END, "\n" +"personal id: "+result[i][5])
+        Textarea.configure(state='disabled')
+
+        edit = Button(secondframe, text="  edit  ", command=editfnc(tk)).place(x=520,y=ediY)
+        function = partial(delete, id=result[i][0])
+        deletebutton = Button(secondframe, text="delete", command=function)
+        deletebutton.place(x=520,y=delY)
+
         delY += 104
         ediY += 104
         j += 1
@@ -261,105 +258,82 @@ def popup(tk):
     connection.commit()
     connection.close()
 
+#delete from database
+def delete(id):
+    valid = id 
+    print(valid)
+    connection = sqlite3.connect('database.db')
+    c = connection.cursor()
+    c.execute("DELETE FROM people WHERE id = :id", {'id': valid})
+    connection.commit()
+    connection.close()
+    mainframe.destroy()
+    print_frame(top)
+
+#prehled 
+def overview(tk):
+    global top
+    top = Tk()
+    top.geometry("600x600")
+    top.title("prehled")
+    top.resizable(False, False)
+
+    print_frame(top)
 
     top.mainloop()
 
+def editfnc(tk):
+    print("upravit veme id = otevre okno a tam text pole s submit - update")
+
+# main win
+def main(tk):
+    # registration window 
+    tk.geometry("295x220")
+    tk.resizable(False, False)
+    tk.title("reg")
 
 
+    Label(tk, text='registration', font='ar 15 bold').grid(row=0, column=3)
 
-"""
-# registration window 
+    # colums
+    name = Label(tk, text='name')
+    lastname = Label(tk, text='lastname')
+    email = Label(tk, text='email')
+    phone_number = Label(tk, text='phone number')
+    presonal_id = Label(tk, text='personal id')
+
+    name.grid(row=1 ,column=2)
+    lastname.grid(row=2 ,column=2)
+    email.grid(row=3 ,column=2)
+    phone_number.grid(row=4 ,column=2)
+    presonal_id.grid(row=5 ,column=2)
+
+    name_value = StringVar
+    lastname_value = StringVar
+    email_value = StringVar
+    phone_number_value = StringVar
+    personal_id_value = StringVar
+
+    name_entry = Entry(tk, textvariable= name_value)
+    lastname_entry = Entry(tk, textvariable= lastname_value)
+    email_entry = Entry(tk, textvariable= email_value)
+    phone_number_entry = Entry(tk, textvariable= phone_number_value)
+    personal_id_entry = Entry(tk, textvariable= personal_id_value)
+
+    name_entry.grid(row=1, column=3)
+    lastname_entry.grid(row=2, column=3)
+    email_entry.grid(row=3, column=3)
+    phone_number_entry.grid(row=4, column=3)
+    personal_id_entry.grid(row=5, column=3)
+
+    # buttons 
+    Button(tk, text="submit", command= lambda:getvals(tk, name_entry, lastname_entry, email_entry, phone_number_entry, personal_id_entry)).grid(row=7, column=3)
+    Button(tk, text="preheled", command= lambda:overview(tk)).grid(row=8, column=3)
+
+
+    tk.mainloop()
+
 tk = Tk()
-tk.geometry("295x220")
-tk.resizable(False, False)
+main(tk)
 
-
-Label(tk, text='registration', font='ar 15 bold').grid(row=0, column=3)
-
-# colums
-name = Label(tk, text='name')
-lastname = Label(tk, text='lastname')
-email = Label(tk, text='email')
-phone_number = Label(tk, text='phone number')
-presonal_id = Label(tk, text='personal id')
-
-name.grid(row=1 ,column=2)
-lastname.grid(row=2 ,column=2)
-email.grid(row=3 ,column=2)
-phone_number.grid(row=4 ,column=2)
-presonal_id.grid(row=5 ,column=2)
-
-name_value = StringVar
-lastname_value = StringVar
-email_value = StringVar
-phone_number_value = StringVar
-personal_id_value = StringVar
-
-name_entry = Entry(tk, textvariable= name_value)
-lastname_entry = Entry(tk, textvariable= lastname_value)
-email_entry = Entry(tk, textvariable= email_value)
-phone_number_entry = Entry(tk, textvariable= phone_number_value)
-personal_id_entry = Entry(tk, textvariable= personal_id_value)
-
-name_entry.grid(row=1, column=3)
-lastname_entry.grid(row=2, column=3)
-email_entry.grid(row=3, column=3)
-phone_number_entry.grid(row=4, column=3)
-personal_id_entry.grid(row=5, column=3)
-
-# buttons 
-Button(tk, text="submit", command= lambda:getvals(tk)).grid(row=7, column=3)
-Button(tk, text="preheled", command= lambda:popup(tk)).grid(row=8, column=3)
-
-
-tk.mainloop()
-"""
-top = Tk()
-top.geometry("600x600")
-top.title("prehled")
-top.resizable(False, False)
-
-mainframe = Frame(top)
-mainframe.pack(fill=BOTH, expand=1)
-
-mycanvas = Canvas(mainframe)
-mycanvas.pack(side=LEFT, fill=BOTH, expand=1 )
-
-myscrollbar = ttk.Scrollbar(mainframe, orient=VERTICAL, comman=mycanvas.yview)
-myscrollbar.pack(side=RIGHT, fill=Y)
-
-mycanvas.configure(yscrollcommand=myscrollbar.set)
-mycanvas.bind('<Configure>', lambda e:mycanvas.configure(scrollregion=mycanvas.bbox('all')))
-
-secondframe = Frame(mycanvas)
-mycanvas.create_window((0,0), window=secondframe, anchor="nw")
-
-connection = sqlite3.connect('database.db')
-c = connection.cursor()
-c.execute("SELECT * FROM people")
-
-result = c.fetchall()
-lenght = range(len(result))
-j = 4
-delY = 60
-ediY = 20
-
-regid = []
-
-for i in lenght:
-    """box = Frame(secondframe, width= 500, height=100, highlightbackground='black', highlightthickness=3).grid(row=j,column=0,padx=20,pady=20)
-    Label(box, text=result[i][1], fg='red', font=(10)).grid(row=j,column=0,padx=10,pady=10)"""
-    T = Text(secondframe, width=70, height=5,).grid(row=j,column=0,padx=10,pady=10)
-    edit = Button(secondframe, text="  edit  ").place(x=520,y=ediY)
-    delete = Button(secondframe, text="delete").place(x=520,y=delY)
-    delY += 104
-    ediY += 104
-    j += 1
-    regid.append(result[i][0])
-
-print(regid) #funkce na delete podle id 
 # upravit veme id = otevre okno a tam text pole s submit - update
-connection.commit()
-connection.close()
-
-top.mainloop()
