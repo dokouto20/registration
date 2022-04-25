@@ -274,7 +274,7 @@ def delete(id):
 def overview(tk):
     global top
     top = Tk()
-    top.geometry("600x600")
+    top.geometry("610x600")
     top.title("prehled")
     top.resizable(False, False)
 
@@ -335,5 +335,3 @@ def main(tk):
 
 tk = Tk()
 main(tk)
-
-# upravit veme id = otevre okno a tam text pole s submit - update
