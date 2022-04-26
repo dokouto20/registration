@@ -26,20 +26,17 @@ import os
 
 # check if in name doesnt have num or spec char 
 def check_name(valname,err):
-    if valname != "OK" or valname != "ERROR":
-        if valname:
-            status = 0
-            for char in valname:
-                val = char.isdigit()
-                valalpha = char.isalpha()
-                if val == True or valalpha == False:
-                    status = 1
-                else:
-                    pass
-            if status == 0:
-                err[0] = 1
+    if valname:
+        status = 0
+        for char in valname:
+            val = char.isdigit()
+            valalpha = char.isalpha()
+            if val == True or valalpha == False:
+                status = 1
             else:
-                err[0] = 0
+                pass
+        if status == 0:
+            err[0] = 1
         else:
             err[0] = 0
     else:
@@ -47,22 +44,17 @@ def check_name(valname,err):
 
 # check if in lastname doesnt have num or spec char 
 def check_lasname(vallastname,err):
-    if vallastname != "OK" or vallastname != "ERROR":
-        if vallastname:
-            status = 0
-
-            for char in vallastname:
-                val = char.isdigit()
-                valalpha = char.isalpha()
-                if val == True or valalpha == False:
-                    status = 1
-                else:
-                    pass
-
-            if status == 0:
-                err[1] = 1
+    if vallastname:
+        status = 0
+        for char in vallastname:
+            val = char.isdigit()
+            valalpha = char.isalpha()
+            if val == True or valalpha == False:
+                status = 1
             else:
-                err[1] = 0
+                pass
+        if status == 0:
+            err[1] = 1
         else:
             err[1] = 0
     else:
@@ -144,9 +136,17 @@ def check_persid(valpersid,err):
         err[4] = 0
 
 #get vals form entry and check it 
-def getvals(tk, name_entry, lastname_entry, email_entry, phone_number_entry, personal_id_entry):
+def getvals(tk, name_entry, lastname_entry, email_entry, phone_number_entry, personal_id_entry, editstatus, id):
     # err list 
     err = [0,0,0,0,0]
+
+    #reset errors
+    name_entry.config(highlightbackground = "white", highlightcolor= "white")
+    lastname_entry.config(highlightbackground = "white", highlightcolor= "white")
+    email_entry.config(highlightbackground = "white", highlightcolor= "white")
+    phone_number_entry.config(highlightbackground = "white", highlightcolor= "white")
+    personal_id_entry.config(highlightbackground = "white", highlightcolor= "white")
+
     # val check 
     valname = name_entry.get()
     check_name(valname,err)
@@ -161,52 +161,68 @@ def getvals(tk, name_entry, lastname_entry, email_entry, phone_number_entry, per
 
     num = 0
     status = 0
+
     #delete text areas if everthing is ok 
     for i in err:
         print(i)
         num += 1
         if i == 0:
             if num == 1:
-                name_entry.delete(0, END)
-                name_entry.insert(0, "ERROR")
+                name_entry.config(highlightbackground = "red", highlightcolor= "red")
             elif num == 2:
-                lastname_entry.delete(0, END)
-                lastname_entry.insert(0, "ERROR")
+                lastname_entry.config(highlightbackground = "red", highlightcolor= "red")
             elif num == 3:
-                email_entry.delete(0, END)
-                email_entry.insert(0, "ERROR")
+                email_entry.config(highlightbackground = "red", highlightcolor= "red")
             elif num == 4:
-                phone_number_entry.delete(0, END)
-                phone_number_entry.insert(0, "ERROR")
+                phone_number_entry.config(highlightbackground = "red", highlightcolor= "red")
             elif num == 5:
-                personal_id_entry.delete(0, END)
-                personal_id_entry.insert(0, "ERROR")
+                personal_id_entry.config(highlightbackground = "red", highlightcolor= "red")
         else:
             status += 1
 
     if status == 5:
-        # inset into database 
-        connection = sqlite3.connect('database.db')
-        c = connection.cursor()
-        c.execute("INSERT INTO people (name, lastname, email, phone_number, personal_number) VALUES (?,?,?,?,?)", (valname,vallastname,valemail,valphone,valpersid,))
-        name_entry.delete(0, END)
-        lastname_entry.delete(0, END)
-        email_entry.delete(0, END)
-        phone_number_entry.delete(0, END)
-        personal_id_entry.delete(0, END)
-        connection.commit()
-        connection.close()
-        #alert window 
-        alert = Toplevel(tk)
-        alert.geometry("295x220")
-        alert.title("alert")
-        Label(alert, text='regisrace uspesna', font='ar 15 bold').grid(row=0, column=3)
-        Button(alert, text="přejit na prehled", command= lambda: alertfnc(alert, tk)).grid(row=3, column=3)
+        if editstatus == 0:
+            # inset into database 
+            connection = sqlite3.connect('database.db')
+            c = connection.cursor()
+            c.execute("INSERT INTO people (name, lastname, email, phone_number, personal_number) VALUES (?,?,?,?,?)", (valname,vallastname,valemail,valphone,valpersid,))
+            name_entry.delete(0, END)
+            lastname_entry.delete(0, END)
+            email_entry.delete(0, END)
+            phone_number_entry.delete(0, END)
+            personal_id_entry.delete(0, END)
+            connection.commit()
+            connection.close()
+
+            #alert window 
+            alert = Toplevel(tk)
+            alert.geometry("295x220")
+            alert.title("alert")
+            Label(alert, text='regisrace uspesna', font='ar 15 bold').grid(row=0, column=3)
+            Button(alert, text="přejit na prehled", command= lambda: alertfnc(alert)).grid(row=3, column=3)
+        else:
+            top.destroy()
+            connection = sqlite3.connect('database.db')
+            c = connection.cursor()
+            c.execute("UPDATE people SET name = :name, lastname = :lastname, email = :email, phone_number = :phone_number, personal_number = :personal_number WHERE id = :id",
+             {
+                 'name':valname,
+                 'lastname':vallastname,
+                 'email':valemail,
+                 'phone_number':valphone,
+                 'personal_number':valpersid,
+                 'id':id,
+             }
+            )
+            connection.commit()
+            connection.close()
+            alertfnc(alert=edit)
 
 #redirect to prehled 
-def alertfnc(alert, tk):
-    alert.after(3000,lambda:alert.destroy())
-    overview(tk)
+def alertfnc(alert):
+    top.destroy()
+    alert.after(1000,lambda:alert.destroy())
+    overview()
 
 # print frame
 def print_frame(top):
@@ -246,9 +262,10 @@ def print_frame(top):
         Textarea.insert(END, "\n" +"personal id: "+result[i][5])
         Textarea.configure(state='disabled')
 
-        edit = Button(secondframe, text="  edit  ", command=editfnc(tk)).place(x=520,y=ediY)
-        function = partial(delete, id=result[i][0])
-        deletebutton = Button(secondframe, text="delete", command=function)
+        functionedit = partial(editfnc, id=result[i][0])
+        edit = Button(secondframe, text="  edit  ", command=functionedit).place(x=520,y=ediY)
+        functiondelete = partial(delete, id=result[i][0])
+        deletebutton = Button(secondframe, text="delete", command=functiondelete)
         deletebutton.place(x=520,y=delY)
 
         delY += 104
@@ -271,7 +288,7 @@ def delete(id):
     print_frame(top)
 
 #prehled 
-def overview(tk):
+def overview():
     global top
     top = Tk()
     top.geometry("610x600")
@@ -282,8 +299,64 @@ def overview(tk):
 
     top.mainloop()
 
-def editfnc(tk):
-    print("upravit veme id = otevre okno a tam text pole s submit - update")
+#edit
+def editfnc(id):
+    global edit
+    edit = Tk()
+    edit.geometry("295x220")
+    edit.title("edit")
+    edit.resizable(False, False)
+
+    Label(edit, text='edit', font='ar 15 bold').grid(row=0, column=3)
+
+    # colums
+    name = Label(edit, text='name')
+    lastname = Label(edit, text='lastname')
+    email = Label(edit, text='email')
+    phone_number = Label(edit, text='phone number')
+    presonal_id = Label(edit, text='personal id')
+
+    name.grid(row=1 ,column=2)
+    lastname.grid(row=2 ,column=2)
+    email.grid(row=3 ,column=2)
+    phone_number.grid(row=4 ,column=2)
+    presonal_id.grid(row=5 ,column=2)
+
+    name_value = StringVar
+    lastname_value = StringVar
+    email_value = StringVar
+    phone_number_value = StringVar
+    personal_id_value = StringVar
+
+    connection = sqlite3.connect('database.db')
+    c = connection.cursor()
+    c.execute("SELECT * FROM people WHERE id ="+str(id)+"")
+    result = c.fetchall()
+    print (result)
+    connection.commit()
+    connection.close()
+
+    name_entry = Entry(edit, textvariable= name_value,highlightthickness=2)
+    name_entry.insert(0,result[0][1])
+    lastname_entry = Entry(edit, textvariable= lastname_value,highlightthickness=2)
+    lastname_entry.insert(0,result[0][2])
+    email_entry = Entry(edit, textvariable= email_value,highlightthickness=2)
+    email_entry.insert(0,result[0][3])
+    phone_number_entry = Entry(edit, textvariable= phone_number_value,highlightthickness=2)
+    phone_number_entry.insert(0,result[0][4])
+    personal_id_entry = Entry(edit, textvariable= personal_id_value,highlightthickness=2)
+    personal_id_entry.insert(0,result[0][5])
+
+    name_entry.grid(row=1, column=3)
+    lastname_entry.grid(row=2, column=3)
+    email_entry.grid(row=3, column=3)
+    phone_number_entry.grid(row=4, column=3)
+    personal_id_entry.grid(row=5, column=3)
+
+    # buttons 
+    Button(edit, text="submit", command= lambda:getvals(edit, name_entry, lastname_entry, email_entry, phone_number_entry, personal_id_entry, editstatus=1, id = id)).grid(row=7, column=3)
+    
+    edit.mainloop()
 
 # main win
 def main(tk):
@@ -314,11 +387,11 @@ def main(tk):
     phone_number_value = StringVar
     personal_id_value = StringVar
 
-    name_entry = Entry(tk, textvariable= name_value)
-    lastname_entry = Entry(tk, textvariable= lastname_value)
-    email_entry = Entry(tk, textvariable= email_value)
-    phone_number_entry = Entry(tk, textvariable= phone_number_value)
-    personal_id_entry = Entry(tk, textvariable= personal_id_value)
+    name_entry = Entry(tk, textvariable= name_value,highlightthickness=2)
+    lastname_entry = Entry(tk, textvariable= lastname_value,highlightthickness=2)
+    email_entry = Entry(tk, textvariable= email_value,highlightthickness=2)
+    phone_number_entry = Entry(tk, textvariable= phone_number_value,highlightthickness=2)
+    personal_id_entry = Entry(tk, textvariable= personal_id_value,highlightthickness=2)
 
     name_entry.grid(row=1, column=3)
     lastname_entry.grid(row=2, column=3)
@@ -327,11 +400,13 @@ def main(tk):
     personal_id_entry.grid(row=5, column=3)
 
     # buttons 
-    Button(tk, text="submit", command= lambda:getvals(tk, name_entry, lastname_entry, email_entry, phone_number_entry, personal_id_entry)).grid(row=7, column=3)
-    Button(tk, text="preheled", command= lambda:overview(tk)).grid(row=8, column=3)
+    Button(tk, text="submit", command= lambda:getvals(tk, name_entry, lastname_entry, email_entry, phone_number_entry, personal_id_entry, editstatus=0, id = 0)).grid(row=7, column=3)
+    Button(tk, text="preheled", command= lambda:overview()).grid(row=8, column=3)
 
 
     tk.mainloop()
 
+
 tk = Tk()
 main(tk)
+
